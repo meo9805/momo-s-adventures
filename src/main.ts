@@ -34,25 +34,8 @@ type Hotspot = {
 const WORLD_WIDTH = 390;
 const WORLD_HEIGHT = 560;
 const TOTAL_FRAGMENTS = STORY.chapters.length;
-const TILE = 16;
-const TILE_SCALE = 2;
-const GROUND_TOP = 190;
 const ASSET_BASE = import.meta.env.BASE_URL;
 const assetUrl = (path: string) => `${ASSET_BASE}${path.replace(/^\//, "")}`;
-
-const tinyTown = {
-  grass: [0],
-  dirt: 1,
-  treeGreen: [4, 5, 7],
-  treeGold: [3],
-  flower: 2,
-  fence: [21, 22, 23],
-  houseRoof: [12, 13, 14],
-  houseWall: [24, 25, 26],
-  path: [97, 98, 99],
-  water: [108, 109, 110],
-  town: [60, 61, 62, 63, 72, 73, 74, 75]
-};
 
 const colors = {
   black: 0x000000,
@@ -169,10 +152,6 @@ class MoonForestScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.spritesheet("tiny-town", assetUrl("assets/kenney-tiny-town/tilemap_packed.png"), {
-      frameWidth: TILE,
-      frameHeight: TILE
-    });
     this.load.image("moon-forest-shell", assetUrl("images/recraft/moon-forest-shell.png"));
     this.load.image("nico", assetUrl("images/recraft/animal-nico.png"));
     this.load.image("rabbit-brown", assetUrl("images/recraft/animal-rabbit-tutu.png"));
@@ -353,29 +332,36 @@ class MoonForestScene extends Phaser.Scene {
     return image;
   }
 
-  private drawStars() {
-    const stars = [
-      [34, 38, 1.5],
-      [78, 126, 1],
-      [112, 66, 1.5],
-      [282, 82, 1.2],
-      [344, 128, 1],
-      [328, 38, 1.7],
-      [46, 166, 1.2],
-      [354, 174, 1.4],
-      [154, 142, 1],
-      [232, 116, 1.6]
-    ];
-    stars.forEach(([x, y, radius], index) => {
-      const star = this.addToStage(this.add.rectangle(x, y, radius * 3, radius * 3, colors.peach, 0.9));
-      this.tweens.add({
-        targets: star,
-        alpha: 0.35,
-        yoyo: true,
-        repeat: -1,
-        duration: 1100 + index * 120
-      });
-    });
+  private addGroundGlow(x: number, y: number, width: number, height: number, alpha = 0.26) {
+    const glow = this.addToStage(this.add.graphics());
+    glow.fillStyle(colors.black, alpha);
+    glow.fillEllipse(x, y, width, height);
+    glow.setDepth(y - 20);
+    return glow;
+  }
+
+  private addMemorySign(x: number, y: number, text: string) {
+    const sign = this.addToStage(this.add.container(x, y));
+    sign.setDepth(y + 20);
+    const g = this.add.graphics();
+    g.fillStyle(colors.black, 0.78);
+    g.fillRect(-80, -20, 160, 40);
+    g.fillStyle(colors.night, 0.96);
+    g.fillRect(-84, -24, 160, 40);
+    g.lineStyle(3, colors.black, 1);
+    g.strokeRect(-84, -24, 160, 40);
+    sign.add(g);
+    sign.add(
+      this.add
+        .text(0, -3, text, {
+          fontFamily: '"Press Start 2P", "Noto Sans SC", monospace',
+          fontSize: "8px",
+          color: "#fef9ef",
+          align: "center"
+        })
+        .setOrigin(0.5)
+    );
+    return sign;
   }
 
   private drawMoonProgress() {
@@ -402,79 +388,6 @@ class MoonForestScene extends Phaser.Scene {
         })
         .setOrigin(0.5)
     );
-  }
-
-  private drawPixelGround() {
-    const tileSize = TILE * TILE_SCALE;
-    for (let y = GROUND_TOP; y < WORLD_HEIGHT + tileSize; y += tileSize) {
-      for (let x = 0; x < WORLD_WIDTH + tileSize; x += tileSize) {
-        const frame = tinyTown.grass[(Math.floor(x / tileSize) + Math.floor(y / tileSize)) % tinyTown.grass.length];
-        this.addTile(x + tileSize / 2, y + tileSize / 2, frame);
-      }
-    }
-
-    this.drawPath(22, 456, 11);
-    this.drawPath(100, 390, 6);
-    this.drawPath(188, 334, 4);
-    this.drawFenceLine(30, 500, 7);
-    this.drawEdgeTrees();
-    this.scatterGrass();
-  }
-
-  private addTile(x: number, y: number, frame: number, scale = TILE_SCALE) {
-    return this.addToStage(this.add.image(x, y, "tiny-town", frame).setScale(scale).setOrigin(0.5));
-  }
-
-  private addTree(x: number, y: number, key: "tree-pine" | "tree-round", scale = 2.6) {
-    const tree = this.addToStage(this.add.image(x, y, key).setScale(scale).setOrigin(0.5, 1));
-    tree.setDepth(y);
-    return tree;
-  }
-
-  private drawEdgeTrees() {
-    [
-      [28, 248, "tree-pine", 2.05],
-      [358, 252, "tree-pine", 2.05],
-      [36, 372, "tree-round", 2],
-      [352, 390, "tree-round", 2],
-      [42, 548, "tree-pine", 2.1],
-      [348, 548, "tree-pine", 2.1]
-    ].forEach(([x, y, key, scale]) => this.addTree(x as number, y as number, key as "tree-pine" | "tree-round", scale as number));
-  }
-
-  private scatterGrass() {
-    const positions = [
-      [74, 238],
-      [302, 240],
-      [135, 318],
-      [238, 322],
-      [58, 430],
-      [314, 432],
-      [154, 508],
-      [240, 504]
-    ];
-    positions.forEach(([x, y], index) => {
-      const tuft = this.addToStage(this.add.image(x, y, index % 2 === 0 ? "grass-tuft" : "flower-pixels").setScale(2));
-      tuft.setDepth(y - 2);
-    });
-  }
-
-  private drawPath(startX: number, startY: number, count: number) {
-    for (let i = 0; i < count; i += 1) {
-      this.addTile(startX + i * TILE * TILE_SCALE, startY + (i % 2) * 5, tinyTown.dirt, 2.08);
-    }
-  }
-
-  private drawFenceLine(startX: number, y: number, count: number) {
-    for (let i = 0; i < count; i += 1) {
-      this.addTile(startX + i * 32, y, tinyTown.fence[i % tinyTown.fence.length], 2);
-    }
-  }
-
-  private addTinyHouse(x: number, y: number) {
-    tinyTown.houseRoof.forEach((frame, index) => this.addTile(x + index * 32, y, frame, 2));
-    tinyTown.houseWall.forEach((frame, index) => this.addTile(x + index * 32, y + 32, frame, 2));
-    this.addTile(x + 32, y + 64, 37, 2);
   }
 
   private addChapterTitle() {
@@ -509,6 +422,8 @@ class MoonForestScene extends Phaser.Scene {
   }
 
   private drawNicoStage() {
+    this.addGroundGlow(146, 484, 146, 34);
+    this.addGroundGlow(276, 398, 96, 26, 0.2);
     const nico = this.addAsset("nico", 136, 438, 92, 92);
     nico.setDepth(438);
     const envelope = this.addAsset("envelope", 276, 358, 72, 56);
@@ -536,11 +451,7 @@ class MoonForestScene extends Phaser.Scene {
   }
 
   private drawRabbitStage() {
-    const garden = this.addToStage(this.add.graphics());
-    garden.fillStyle(colors.earth, 0.54);
-    garden.fillRect(52, 302, 164, 86);
-    garden.lineStyle(3, colors.black, 0.55);
-    garden.strokeRect(52, 302, 164, 86);
+    this.addGroundGlow(188, 482, 280, 42);
     const tutu = this.addAsset("rabbit-brown", 116, 438, 78, 78);
     const dudu = this.addAsset("rabbit-dark", 258, 438, 78, 78);
     tutu.setDepth(438);
@@ -574,6 +485,7 @@ class MoonForestScene extends Phaser.Scene {
   }
 
   private drawGliderStage() {
+    this.addMemorySign(195, 504, "小区树下的姊姊妹妹");
     const sister = this.addAsset("glider-white", 126, 360, 70, 70);
     const sister2 = this.addAsset("glider-mottle", 268, 394, 70, 70);
     sister.setDepth(360);
@@ -622,7 +534,8 @@ class MoonForestScene extends Phaser.Scene {
   }
 
   private drawCatStage() {
-    this.addApartmentLights();
+    this.addGroundGlow(195, 480, 292, 44);
+    this.addMemorySign(195, 258, "楼下遇见小咪");
     const cowCat = this.addAsset("cat-cow", 118, 438, 76, 66);
     const tabby = this.addAsset("cat-tabby", 265, 446, 58, 52);
     cowCat.setDepth(438);
@@ -656,7 +569,8 @@ class MoonForestScene extends Phaser.Scene {
   }
 
   private drawPlazaStage() {
-    this.addPlaza();
+    this.addGroundGlow(195, 432, 294, 52);
+    this.addMemorySign(195, 318, "郑州二七广场的夜风");
     const moon = this.addToStage(this.add.rectangle(195, 210, 54, 54, colors.moon, 0.18));
     this.tweens.add({ targets: moon, alpha: 0.42, yoyo: true, repeat: -1, duration: 1400 });
 
@@ -705,53 +619,6 @@ class MoonForestScene extends Phaser.Scene {
         }
       });
     }
-  }
-
-  private addCanopy() {
-    for (let i = 0; i < 9; i += 1) {
-      const x = 38 + i * 39;
-      const y = 224 + (i % 2) * 24;
-      this.addTree(x, y, i % 3 === 0 ? "tree-pine" : "tree-round", 1.55);
-    }
-    this.drawPath(72, 330, 8);
-  }
-
-  private addApartmentLights() {
-    this.addTinyHouse(70, 246);
-    this.addTinyHouse(198, 250);
-    this.drawPath(86, 366, 7);
-    this.addTile(60, 386, tinyTown.flower, 2.4);
-    this.addTile(330, 390, tinyTown.flower, 2.4);
-  }
-
-  private addPlaza() {
-    const g = this.addToStage(this.add.graphics());
-    g.fillStyle(colors.grass, 0.72);
-    g.fillRect(38, 246, 314, 104);
-    g.lineStyle(3, colors.black, 1);
-    g.strokeRect(38, 246, 314, 104);
-    g.fillStyle(0xceb684, 0.9);
-    g.fillRect(42, 360, 306, 58);
-    this.addTinyHouse(48, 248);
-    this.addTinyHouse(258, 252);
-    for (let i = 0; i < 5; i += 1) {
-      this.addTile(118 + i * 32, 326, tinyTown.path[i % tinyTown.path.length], 2);
-    }
-    g.fillStyle(colors.fox, 0.95);
-    g.fillRect(185, 198, 20, 108);
-    g.fillStyle(colors.peach, 0.96);
-    g.fillRect(178, 184, 34, 24);
-    g.fillStyle(colors.black, 0.16);
-    g.fillEllipse(195, 420, 292, 48);
-    this.addToStage(
-      this.add
-        .text(195, 338, "郑州二七广场", {
-          fontFamily: '"Press Start 2P", "Noto Sans SC", monospace',
-          fontSize: "10px",
-          color: "#fef9ef"
-        })
-        .setOrigin(0.5)
-    );
   }
 
   private addPhotoCard(x: number, y: number, label: string) {

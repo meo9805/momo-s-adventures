@@ -28,9 +28,12 @@ npm run build
 最省事的方式是打开 GitHub Pages：
 
 1. 把代码推到 `meo9805/momo-s-adventures` 的 `main` 分支。
-2. GitHub Actions 会自动构建 `dist` 并部署到 Pages。
-3. 如果第一次没有自动开启，到仓库 `Settings -> Pages`，把 Source 设成 `GitHub Actions`。
-4. 等 Actions 跑完，把上面的 Pages 链接发给对方。
+2. 到仓库 `Settings -> Pages`。
+3. Source 选择 `Deploy from a branch`。
+4. Branch 选择 `main`，文件夹选择 `/docs`，保存。
+5. 等 1 到 2 分钟，把上面的 Pages 链接发给对方。
+
+当前仓库已经提交了 `docs/` 静态构建产物，所以不依赖 GitHub Actions。
 
 如果暂时不能公网访问，也可以本机局域网试玩：
 
@@ -38,7 +41,13 @@ npm run build
 npm run dev
 ```
 
-然后把终端里显示的 Network 地址发给同一个 Wi-Fi 下的手机或电脑。
+然后把终端里显示的 Network 地址发给同一个 Wi-Fi 下的手机或电脑。也可以手动查本机 Wi-Fi IP：
+
+```bash
+ipconfig getifaddr en0
+```
+
+再用 `http://你的IP:5173/` 打开。
 
 ## 后续补照片
 

@@ -11,6 +11,9 @@ pnpm-debug.log*
 output/
 assets/downloads/
 public/debug/
+/momo-s-adventures-static.zip
+/playwright-*.png
+/browser-*.png
 
 # Raw Recraft exports kept locally while curating assets.
 /cozy-16-bit-pixel-art-vertical-mobile-game-backgro*.png
