@@ -1,0 +1,23 @@
+node_modules/
+dist/
+.DS_Store
+.env
+.env.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.playwright-cli/
+output/
+assets/downloads/
+public/debug/
+
+# Raw Recraft exports kept locally while curating assets.
+/cozy-16-bit-pixel-art-vertical-mobile-game-backgro*.png
+/pixel-art-sprite-sheet*.png
+/animal-*.png
+/prop-*.png
+
+# Local design exports; source prompts and curated assets are committed instead.
+/Cozy Pixel-Art Game UI.zip
+/Untitled.make
