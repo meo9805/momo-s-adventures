@@ -1,14 +1,18 @@
 const CACHE_PREFIX = "momo-moon-forest";
-const CACHE_NAME = `${CACHE_PREFIX}-v20260522-pwa-3`;
+const CACHE_NAME = `${CACHE_PREFIX}-v20260522-pwa-4`;
 
 const PRECACHE_URLS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./icons/apple-touch-icon.png",
+  "./icons/apple-touch-icon-moon-v4.png",
   "./icons/icon-192.png",
+  "./icons/icon-192-moon-v4.png",
   "./icons/icon-512.png",
+  "./icons/icon-512-moon-v4.png",
   "./icons/maskable-512.png",
+  "./icons/maskable-512-moon-v4.png",
   "./assets/kenney-tiny-town/License.txt",
   "./assets/kenney-tiny-town/tilemap_packed.png",
   "./fonts/fusion-pixel/LICENSE-OFL.txt",
