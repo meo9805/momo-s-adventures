@@ -424,7 +424,7 @@ class MoonForestScene extends Phaser.Scene {
     sign.add(
       this.add
         .text(0, -3, text, {
-          fontFamily: '"Press Start 2P", "Noto Sans SC", monospace',
+          fontFamily: '"Fusion Pixel Latin", "Fusion Pixel CN", monospace',
           fontSize: "8px",
           color: "#fef9ef",
           align: "center"
@@ -452,7 +452,7 @@ class MoonForestScene extends Phaser.Scene {
     this.addToStage(
       this.add
         .text(335, 57, `${this.fragments}/${TOTAL_FRAGMENTS}`, {
-          fontFamily: '"Press Start 2P", "Noto Sans SC", monospace',
+          fontFamily: '"Fusion Pixel Latin", "Fusion Pixel CN", monospace',
           fontSize: "9px",
           color: "#fef9ef"
         })
@@ -471,7 +471,7 @@ class MoonForestScene extends Phaser.Scene {
     this.addToStage(
       this.add
         .text(34, 38, this.activeChapter.title, {
-          fontFamily: '"Press Start 2P", "Noto Sans SC", monospace',
+          fontFamily: '"Fusion Pixel Latin", "Fusion Pixel CN", monospace',
           fontSize: "11px",
           color: "#e8dff5",
           align: "center"
@@ -481,7 +481,7 @@ class MoonForestScene extends Phaser.Scene {
     this.addToStage(
       this.add
         .text(34, 65, this.activeChapter.subtitle, {
-          fontFamily: '"Silkscreen", "Noto Sans SC", monospace',
+          fontFamily: '"Fusion Pixel Latin", "Fusion Pixel CN", monospace',
           fontSize: "11px",
           color: "#b4a5d5",
           align: "left",
@@ -501,7 +501,7 @@ class MoonForestScene extends Phaser.Scene {
     const prompt = this.addToStage(
       this.add
         .text(191, 315, "TAP", {
-          fontFamily: '"Silkscreen", "Noto Sans SC", monospace',
+          fontFamily: '"Fusion Pixel Latin", "Fusion Pixel CN", monospace',
           fontSize: "12px",
           color: "#1a1a2e",
           backgroundColor: "#ffb5c0",
