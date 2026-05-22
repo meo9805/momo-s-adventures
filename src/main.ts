@@ -41,7 +41,7 @@ type EditPosition = {
 const WORLD_WIDTH = 390;
 const WORLD_HEIGHT = 560;
 const TOTAL_FRAGMENTS = STORY.chapters.length;
-const ASSET_VERSION = "20260522-v6";
+const ASSET_VERSION = "20260522-v7";
 const assetUrl = (path: string) => {
   const url = new URL(path.replace(/^\//, ""), window.location.href);
   url.searchParams.set("v", ASSET_VERSION);
@@ -1380,8 +1380,19 @@ ui.startButton.addEventListener("click", () => {
   ui.intro.classList.add("intro--hidden");
 });
 
-if ("serviceWorker" in navigator && import.meta.env.PROD) {
+async function clearLegacyCaches() {
+  if ("serviceWorker" in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(registrations.map((registration) => registration.unregister()));
+  }
+  if ("caches" in window) {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter((key) => key.startsWith("momo-moon-forest")).map((key) => caches.delete(key)));
+  }
+}
+
+if (import.meta.env.PROD) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register(assetUrl("sw.js")).catch(() => undefined);
+    void clearLegacyCaches();
   });
 }

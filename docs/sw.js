@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "momo-moon-forest";
-const CACHE_NAME = `${CACHE_PREFIX}-v20260522-pwa-6`;
+const CACHE_NAME = `${CACHE_PREFIX}-v20260522-pwa-disabled`;
 
 const PRECACHE_URLS = [
   "./",
