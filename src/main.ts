@@ -41,7 +41,12 @@ type EditPosition = {
 const WORLD_WIDTH = 390;
 const WORLD_HEIGHT = 560;
 const TOTAL_FRAGMENTS = STORY.chapters.length;
-const assetUrl = (path: string) => new URL(path.replace(/^\//, ""), window.location.href).toString();
+const ASSET_VERSION = "20260522-v6";
+const assetUrl = (path: string) => {
+  const url = new URL(path.replace(/^\//, ""), window.location.href);
+  url.searchParams.set("v", ASSET_VERSION);
+  return url.toString();
+};
 const EDIT_MODE = new URLSearchParams(window.location.search).get("edit") === "1";
 const IMAGE_ASSETS = {
   "moon-forest-shell": "images/recraft/moon-forest-shell.png",

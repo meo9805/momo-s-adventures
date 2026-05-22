@@ -1,6 +1,6 @@
 @font-face {
   font-family: "Fusion Pixel CN";
-  src: url("/fonts/fusion-pixel/fusion-pixel-12px-proportional-zh_hans.otf.woff2") format("woff2");
+  src: url("/fonts/fusion-pixel/fusion-pixel-12px-proportional-zh_hans.otf.woff2?v=20260522-v6") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -23,8 +23,8 @@
   --muted: #2a2a4e;
   --border: #000000;
   --paper-ink: #8b6f47;
-  --scene-backdrop: url("/images/recraft/moon-forest-shell.png");
-  --final-moon: url("/images/recraft/prop-final-moon.png");
+  --scene-backdrop: url("/images/recraft/moon-forest-shell.png?v=20260522-v6");
+  --final-moon: url("/images/recraft/prop-final-moon.png?v=20260522-v6");
   --pixel-shadow: 4px 4px 0 rgba(0, 0, 0, 0.82);
   --pixel-shadow-big: 8px 8px 0 rgba(0, 0, 0, 0.82);
 }
