@@ -41,7 +41,7 @@ type EditPosition = {
 const WORLD_WIDTH = 390;
 const WORLD_HEIGHT = 560;
 const TOTAL_FRAGMENTS = STORY.chapters.length;
-const ASSET_VERSION = "20260522-v7";
+const ASSET_VERSION = "20260522-v8";
 const assetUrl = (path: string) => {
   const url = new URL(path.replace(/^\//, ""), window.location.href);
   url.searchParams.set("v", ASSET_VERSION);
@@ -1185,6 +1185,7 @@ class MoonForestScene extends Phaser.Scene {
     height: number,
     paint: (ctx: CanvasRenderingContext2D) => void
   ) {
+    if (Object.prototype.hasOwnProperty.call(IMAGE_ASSETS, key)) return;
     if (this.textures.exists(key)) return;
     const texture = this.textures.createCanvas(key, width, height);
     if (!texture) {
