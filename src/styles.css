@@ -6,17 +6,9 @@
   font-display: swap;
 }
 
-@font-face {
-  font-family: "Fusion Pixel Latin";
-  src: url("/fonts/fusion-pixel/fusion-pixel-12px-proportional-latin.otf.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
 :root {
   color-scheme: dark;
-  font-family: "Fusion Pixel CN", "Fusion Pixel Latin", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: "Fusion Pixel CN", "PingFang SC", "Microsoft YaHei", sans-serif;
   font-synthesis: none;
   text-rendering: geometricPrecision;
   -webkit-font-smoothing: none;
@@ -126,7 +118,7 @@ button {
 
 .topbar h2 {
   margin: 5px 0 0;
-  font-family: "Fusion Pixel CN", "Fusion Pixel Latin", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: "Fusion Pixel CN", "PingFang SC", "Microsoft YaHei", sans-serif;
   font-size: clamp(18px, 5vw, 21px);
   font-weight: 400;
   line-height: 1.35;
@@ -229,7 +221,7 @@ button {
   background: var(--night-sky);
   color: var(--moonlight);
   box-shadow: 0 -4px 0 rgba(0, 0, 0, 0.82);
-  font-family: "Fusion Pixel CN", "Fusion Pixel Latin", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: "Fusion Pixel CN", "PingFang SC", "Microsoft YaHei", sans-serif;
   overflow: hidden;
 }
 
@@ -264,7 +256,7 @@ button {
   border-radius: 0;
   color: var(--night-sky);
   background: var(--fox-orange);
-  font-family: "Fusion Pixel CN", "Fusion Pixel Latin", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: "Fusion Pixel CN", "PingFang SC", "Microsoft YaHei", sans-serif;
   font-size: 15px;
   font-weight: 400;
   line-height: 1.2;
@@ -340,7 +332,7 @@ button {
   background-size: cover;
   background-position: center bottom;
   box-shadow: var(--pixel-shadow-big);
-  font-family: "Fusion Pixel Latin", "Fusion Pixel CN", monospace;
+  font-family: "Fusion Pixel CN", monospace;
   font-size: 10px;
   line-height: 1.8;
 }
@@ -348,7 +340,7 @@ button {
 .intro h1,
 .ending h2 {
   margin: 10px 0 16px;
-  font-family: "Fusion Pixel Latin", "Fusion Pixel CN", monospace;
+  font-family: "Fusion Pixel CN", monospace;
   font-size: clamp(24px, 9vw, 34px);
   line-height: 1.35;
   letter-spacing: 0;
@@ -363,7 +355,7 @@ button {
 .intro__copy {
   margin: 0 auto 26px;
   color: var(--lavender);
-  font-family: "Fusion Pixel CN", "Fusion Pixel Latin", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: "Fusion Pixel CN", "PingFang SC", "Microsoft YaHei", sans-serif;
   font-size: 13px;
   line-height: 1.8;
 }
@@ -422,7 +414,7 @@ button {
   color: var(--paper-ink);
   background: var(--cream);
   box-shadow: var(--pixel-shadow-big);
-  font-family: "Fusion Pixel CN", "Fusion Pixel Latin", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: "Fusion Pixel CN", "PingFang SC", "Microsoft YaHei", sans-serif;
   font-size: 13px;
   line-height: 1.9;
   text-align: left;
@@ -435,7 +427,7 @@ button {
 .ending__sign {
   margin: 0 0 10px;
   color: var(--cream);
-  font-family: "Fusion Pixel Latin", "Fusion Pixel CN", monospace;
+  font-family: "Fusion Pixel CN", monospace;
   font-size: clamp(16px, 4.4vw, 20px);
   text-shadow: 3px 3px 0 #000;
 }
@@ -453,7 +445,7 @@ button {
   color: var(--moonlight);
   background: rgba(26, 26, 46, 0.94);
   box-shadow: var(--pixel-shadow);
-  font-family: "Fusion Pixel CN", "Fusion Pixel Latin", monospace;
+  font-family: "Fusion Pixel CN", monospace;
   font-size: 11px;
   line-height: 1.5;
 }

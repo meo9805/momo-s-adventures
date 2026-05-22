@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "momo-moon-forest";
-const CACHE_NAME = `${CACHE_PREFIX}-v20260522-pwa-4`;
+const CACHE_NAME = `${CACHE_PREFIX}-v20260522-pwa-5`;
 
 const PRECACHE_URLS = [
   "./",
@@ -12,37 +12,7 @@ const PRECACHE_URLS = [
   "./icons/icon-512.png",
   "./icons/icon-512-moon-v4.png",
   "./icons/maskable-512.png",
-  "./icons/maskable-512-moon-v4.png",
-  "./assets/kenney-tiny-town/License.txt",
-  "./assets/kenney-tiny-town/tilemap_packed.png",
-  "./fonts/fusion-pixel/LICENSE-OFL.txt",
-  "./fonts/fusion-pixel/fusion-pixel-12px-proportional-latin.otf.woff2",
-  "./fonts/fusion-pixel/fusion-pixel-12px-proportional-zh_hans.otf.woff2",
-  "./images/recraft/animal-cat-xiaomi.png",
-  "./images/recraft/animal-cat-xiaoxiaomi.png",
-  "./images/recraft/animal-glider-meimei.png",
-  "./images/recraft/animal-glider-zizi.png",
-  "./images/recraft/animal-nico.png",
-  "./images/recraft/animal-pigeon-1.png",
-  "./images/recraft/animal-pigeon-2.png",
-  "./images/recraft/animal-pigeon-3.png",
-  "./images/recraft/animal-pigeon-4.png",
-  "./images/recraft/animal-pigeon-5.png",
-  "./images/recraft/animal-pigeon-6.png",
-  "./images/recraft/animal-pigeon-7.png",
-  "./images/recraft/animal-rabbit-dudu.png",
-  "./images/recraft/animal-rabbit-tutu.png",
-  "./images/recraft/moon-forest-shell.png",
-  "./images/recraft/prop-carrot-lantern.png",
-  "./images/recraft/prop-envelope.png",
-  "./images/recraft/prop-final-moon.png",
-  "./images/recraft/prop-moon-shard.png",
-  "./images/recraft/prop-open-letter.png",
-  "./images/recraft/prop-photo-folder-nico.png",
-  "./images/recraft/prop-photo-folder-xiaomi.png",
-  "./images/recraft/prop-photo-folder-xiaoxiaomi.png",
-  "./images/recraft/prop-photo-folder.png",
-  "./photos/README.md"
+  "./icons/maskable-512-moon-v4.png"
 ];
 
 self.addEventListener("install", (event) => {

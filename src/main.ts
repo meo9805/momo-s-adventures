@@ -43,6 +43,46 @@ const WORLD_HEIGHT = 560;
 const TOTAL_FRAGMENTS = STORY.chapters.length;
 const assetUrl = (path: string) => new URL(path.replace(/^\//, ""), window.location.href).toString();
 const EDIT_MODE = new URLSearchParams(window.location.search).get("edit") === "1";
+const IMAGE_ASSETS = {
+  "moon-forest-shell": "images/recraft/moon-forest-shell.png",
+  nico: "images/recraft/animal-nico.png",
+  "rabbit-brown": "images/recraft/animal-rabbit-tutu.png",
+  "rabbit-dark": "images/recraft/animal-rabbit-dudu.png",
+  "glider-white": "images/recraft/animal-glider-zizi.png",
+  "glider-mottle": "images/recraft/animal-glider-meimei.png",
+  "cat-cow": "images/recraft/animal-cat-xiaomi.png",
+  "cat-tabby": "images/recraft/animal-cat-xiaoxiaomi.png",
+  "pigeon-1": "images/recraft/animal-pigeon-1.png",
+  "pigeon-2": "images/recraft/animal-pigeon-2.png",
+  "pigeon-3": "images/recraft/animal-pigeon-3.png",
+  "pigeon-4": "images/recraft/animal-pigeon-4.png",
+  "pigeon-5": "images/recraft/animal-pigeon-5.png",
+  "pigeon-6": "images/recraft/animal-pigeon-6.png",
+  "pigeon-7": "images/recraft/animal-pigeon-7.png",
+  envelope: "images/recraft/prop-envelope.png",
+  "open-letter": "images/recraft/prop-open-letter.png",
+  "carrot-lantern": "images/recraft/prop-carrot-lantern.png",
+  "moon-shard": "images/recraft/prop-moon-shard.png",
+  "photo-folder": "images/recraft/prop-photo-folder.png",
+  "photo-folder-nico": "images/recraft/prop-photo-folder-nico.png",
+  "photo-folder-xiaomi": "images/recraft/prop-photo-folder-xiaomi.png",
+  "photo-folder-xiaoxiaomi": "images/recraft/prop-photo-folder-xiaoxiaomi.png"
+} as const;
+type ImageAssetKey = keyof typeof IMAGE_ASSETS;
+const STAGE_ASSETS: Record<Chapter["id"], ImageAssetKey[]> = {
+  nico: ["moon-forest-shell", "nico", "envelope", "moon-shard"],
+  rabbits: ["moon-forest-shell", "rabbit-brown", "rabbit-dark", "carrot-lantern"],
+  gliders: ["moon-forest-shell", "glider-white", "glider-mottle", "moon-shard"],
+  cats: [
+    "moon-forest-shell",
+    "cat-cow",
+    "cat-tabby",
+    "photo-folder-nico",
+    "photo-folder-xiaomi",
+    "photo-folder-xiaoxiaomi"
+  ],
+  plaza: ["moon-forest-shell", "pigeon-3", "pigeon-5", "pigeon-6", "pigeon-7"]
+};
 
 const editState: {
   stage: Chapter["id"] | "";
@@ -173,6 +213,7 @@ class MoonForestScene extends Phaser.Scene {
   private dialogIndex = 0;
   private dialogDone: (() => void) | null = null;
   private stageAssist: (() => void) | null = null;
+  private stageLoadToken = 0;
 
   constructor(bridge: Bridge) {
     super("MoonForestScene");
@@ -180,25 +221,7 @@ class MoonForestScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("moon-forest-shell", assetUrl("images/recraft/moon-forest-shell.png"));
-    this.load.image("nico", assetUrl("images/recraft/animal-nico.png"));
-    this.load.image("rabbit-brown", assetUrl("images/recraft/animal-rabbit-tutu.png"));
-    this.load.image("rabbit-dark", assetUrl("images/recraft/animal-rabbit-dudu.png"));
-    this.load.image("glider-white", assetUrl("images/recraft/animal-glider-zizi.png"));
-    this.load.image("glider-mottle", assetUrl("images/recraft/animal-glider-meimei.png"));
-    this.load.image("cat-cow", assetUrl("images/recraft/animal-cat-xiaomi.png"));
-    this.load.image("cat-tabby", assetUrl("images/recraft/animal-cat-xiaoxiaomi.png"));
-    for (let index = 1; index <= 7; index += 1) {
-      this.load.image(`pigeon-${index}`, assetUrl(`images/recraft/animal-pigeon-${index}.png`));
-    }
-    this.load.image("envelope", assetUrl("images/recraft/prop-envelope.png"));
-    this.load.image("open-letter", assetUrl("images/recraft/prop-open-letter.png"));
-    this.load.image("carrot-lantern", assetUrl("images/recraft/prop-carrot-lantern.png"));
-    this.load.image("moon-shard", assetUrl("images/recraft/prop-moon-shard.png"));
-    this.load.image("photo-folder", assetUrl("images/recraft/prop-photo-folder.png"));
-    this.load.image("photo-folder-nico", assetUrl("images/recraft/prop-photo-folder-nico.png"));
-    this.load.image("photo-folder-xiaomi", assetUrl("images/recraft/prop-photo-folder-xiaomi.png"));
-    this.load.image("photo-folder-xiaoxiaomi", assetUrl("images/recraft/prop-photo-folder-xiaoxiaomi.png"));
+    this.queueImageAssets(STAGE_ASSETS.nico);
   }
 
   create() {
@@ -249,6 +272,7 @@ class MoonForestScene extends Phaser.Scene {
   }
 
   private showStage(index: number) {
+    const token = ++this.stageLoadToken;
     this.stageIndex = index;
     this.stageComplete = false;
     this.dialogLines = [];
@@ -256,6 +280,15 @@ class MoonForestScene extends Phaser.Scene {
     this.dialogIndex = 0;
     this.activeChapter = STORY.chapters[index];
     this.clearStage();
+
+    this.ensureStageAssets(this.activeChapter.id, () => {
+      if (token !== this.stageLoadToken) return;
+      this.clearStage();
+      this.renderStage();
+    });
+  }
+
+  private renderStage() {
     this.drawBaseScene();
 
     switch (this.activeChapter.id) {
@@ -286,6 +319,39 @@ class MoonForestScene extends Phaser.Scene {
       editState.stage = this.activeChapter.id;
       renderEditPanel();
     }
+  }
+
+  private ensureStageAssets(chapterId: Chapter["id"], done: () => void) {
+    const missing = STAGE_ASSETS[chapterId].filter((key) => !this.textures.exists(key));
+    if (missing.length === 0) {
+      done();
+      return;
+    }
+
+    this.drawLoadingScene();
+    this.updateUi("正在把这一章的小动物请进森林。", "加载中", false);
+    this.queueImageAssets(missing);
+    this.load.once(Phaser.Loader.Events.COMPLETE, done);
+    this.load.start();
+  }
+
+  private ensureImageAssets(keys: ImageAssetKey[], done: () => void) {
+    const missing = keys.filter((key) => !this.textures.exists(key));
+    if (missing.length === 0) {
+      done();
+      return;
+    }
+
+    this.queueImageAssets(missing);
+    this.load.once(Phaser.Loader.Events.COMPLETE, done);
+    this.load.start();
+  }
+
+  private queueImageAssets(keys: ImageAssetKey[]) {
+    keys.forEach((key) => {
+      if (this.textures.exists(key)) return;
+      this.load.image(key, assetUrl(IMAGE_ASSETS[key]));
+    });
   }
 
   private clearStage() {
@@ -387,6 +453,25 @@ class MoonForestScene extends Phaser.Scene {
     shade.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
   }
 
+  private drawLoadingScene() {
+    const g = this.addToStage(this.add.graphics());
+    g.fillStyle(colors.deepBlue, 1);
+    g.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+    g.fillStyle(colors.night, 0.9);
+    g.fillRect(78, 246, 236, 58);
+    g.lineStyle(3, colors.black, 1);
+    g.strokeRect(78, 246, 236, 58);
+    this.addToStage(
+      this.add
+        .text(WORLD_WIDTH / 2, 275, "LOADING", {
+          fontFamily: '"Fusion Pixel CN", monospace',
+          fontSize: "14px",
+          color: "#e8dff5"
+        })
+        .setOrigin(0.5)
+    );
+  }
+
   private addCoverImage(key: string) {
     const image = this.addToStage(this.add.image(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, key).setOrigin(0.5));
     const scale = Math.max(WORLD_WIDTH / image.width, WORLD_HEIGHT / image.height);
@@ -424,7 +509,7 @@ class MoonForestScene extends Phaser.Scene {
     sign.add(
       this.add
         .text(0, -3, text, {
-          fontFamily: '"Fusion Pixel Latin", "Fusion Pixel CN", monospace',
+          fontFamily: '"Fusion Pixel CN", monospace',
           fontSize: "8px",
           color: "#fef9ef",
           align: "center"
@@ -452,7 +537,7 @@ class MoonForestScene extends Phaser.Scene {
     this.addToStage(
       this.add
         .text(335, 57, `${this.fragments}/${TOTAL_FRAGMENTS}`, {
-          fontFamily: '"Fusion Pixel Latin", "Fusion Pixel CN", monospace',
+          fontFamily: '"Fusion Pixel CN", monospace',
           fontSize: "9px",
           color: "#fef9ef"
         })
@@ -471,7 +556,7 @@ class MoonForestScene extends Phaser.Scene {
     this.addToStage(
       this.add
         .text(34, 38, this.activeChapter.title, {
-          fontFamily: '"Fusion Pixel Latin", "Fusion Pixel CN", monospace',
+          fontFamily: '"Fusion Pixel CN", monospace',
           fontSize: "11px",
           color: "#e8dff5",
           align: "center"
@@ -481,7 +566,7 @@ class MoonForestScene extends Phaser.Scene {
     this.addToStage(
       this.add
         .text(34, 65, this.activeChapter.subtitle, {
-          fontFamily: '"Fusion Pixel Latin", "Fusion Pixel CN", monospace',
+          fontFamily: '"Fusion Pixel CN", monospace',
           fontSize: "11px",
           color: "#b4a5d5",
           align: "left",
@@ -501,7 +586,7 @@ class MoonForestScene extends Phaser.Scene {
     const prompt = this.addToStage(
       this.add
         .text(191, 315, "TAP", {
-          fontFamily: '"Fusion Pixel Latin", "Fusion Pixel CN", monospace',
+          fontFamily: '"Fusion Pixel CN", monospace',
           fontSize: "12px",
           color: "#1a1a2e",
           backgroundColor: "#ffb5c0",
@@ -533,6 +618,7 @@ class MoonForestScene extends Phaser.Scene {
       this.completeStage(STORY.nicoLines[2]);
     };
     const openLetter = () => {
+      const renderLetter = () => {
       const letterCopy = "堡堡，今晚月亮不见了。\n不是 nico偷走了，是 nico想让 momo 亲手找到今晚的浪漫。";
       const letter = this.addToStage(this.add.container(195, 284));
       letter.setDepth(540);
@@ -543,7 +629,7 @@ class MoonForestScene extends Phaser.Scene {
       letter.setSize(letterArt.displayWidth, letterArt.displayHeight);
       const letterText = this.add
         .text(-78, -94, letterCopy, {
-          fontFamily: '"Fusion Pixel CN", "Fusion Pixel Latin", "PingFang SC", "Microsoft YaHei", sans-serif',
+          fontFamily: '"Fusion Pixel CN", "PingFang SC", "Microsoft YaHei", sans-serif',
           fontSize: "11px",
           color: "#8b6f47",
           lineSpacing: 3,
@@ -557,6 +643,16 @@ class MoonForestScene extends Phaser.Scene {
       letterHotspot = this.makeInteractive(letter, revealFirstMoon);
       this.updateUi("信纸展开了。再轻点信纸，把第一片月光接出来。", "轻点信纸", true);
       this.haptic();
+      };
+
+      envelope.disableInteractive();
+      prompt.setVisible(false);
+      if (!this.textures.exists("open-letter")) {
+        this.updateUi("信纸正在展开，马上就好。", "加载信纸", false);
+        this.ensureImageAssets(["open-letter"], renderLetter);
+        return;
+      }
+      renderLetter();
     };
     const envelopeHotspot = this.makeInteractive(envelope, () => {
       openLetter();
