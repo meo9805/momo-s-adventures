@@ -6,14 +6,20 @@
 
 - Recraft custom pixel assets
   - 文件：`public/images/recraft/`
-  - 用途：月亮森林背景、Nico、图图、信封、胡萝卜灯，以及当前可用的兜底动物图。
+  - 用途：月亮森林背景、Nico、图图/嘟嘟、姊姊/妹妹、小咪/小小咪、二七广场鸟群、信封、展开信纸、胡萝卜灯、月亮碎片、照片夹，以及一个候选最终月亮素材。
   - 说明：这是为本项目生成的定制素材。公开仓库前不要放入 momo 的私人照片。
+
+- Fusion Pixel Font
+  - 来源：https://github.com/TakWolf/fusion-pixel-font
+  - 文件：`public/fonts/fusion-pixel/`
+  - 许可证：SIL Open Font License 1.1，许可文件已放在 `public/fonts/fusion-pixel/LICENSE-OFL.txt`
+  - 用途：让中文 UI 和剧情文本保持像素字形，不再回退到系统中文字体。
 
 - Kenney Tiny Town
   - 来源：https://kenney.nl/assets/tiny-town
   - 文件：`public/assets/kenney-tiny-town/tilemap_packed.png`
   - 许可证：CC0 1.0，许可文件已放在 `public/assets/kenney-tiny-town/License.txt`
-  - 用途：少量兜底花草、城市/鸟群等像素道具。
+  - 用途：少量兜底花草等像素道具；当前主线动物和鸟群已替换为定制素材。
 
 ## 已调研但暂未引入
 

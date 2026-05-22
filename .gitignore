@@ -9,6 +9,8 @@ yarn-error.log*
 pnpm-debug.log*
 .playwright-cli/
 output/
+.codex_backups/
+.codex_tmp/
 assets/downloads/
 public/debug/
 /momo-s-adventures-static.zip
@@ -20,6 +22,12 @@ public/debug/
 /pixel-art-sprite-sheet*.png
 /animal-*.png
 /prop-*.png
+/月亮碎片.png
+/照片夹.png
+/照片夹/
+/小小咪.png
+/鸽子.png
+/素材补充.png
 
 # Local design exports; source prompts and curated assets are committed instead.
 /Cozy Pixel-Art Game UI.zip

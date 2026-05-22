@@ -58,7 +58,7 @@ export const STORY = {
     }
   ] satisfies Chapter[],
   nicoLines: [
-    "堡堡，今晚的月亮不见了。",
+    "堡堡，今晚月亮不见了。",
     "Nico 说：不是偷走，是想让 momo 亲手找到今晚的浪漫。",
     "第一片月光，藏在一只北美赤狐认真守着的地方。"
   ],

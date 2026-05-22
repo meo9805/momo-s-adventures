@@ -1,11 +1,27 @@
 @import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap");
 
+@font-face {
+  font-family: "Fusion Pixel CN";
+  src: url("/fonts/fusion-pixel/fusion-pixel-12px-proportional-zh_hans.otf.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Fusion Pixel Latin";
+  src: url("/fonts/fusion-pixel/fusion-pixel-12px-proportional-latin.otf.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   color-scheme: dark;
-  font-family: "Silkscreen", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", monospace;
+  font-family: "Fusion Pixel CN", "Fusion Pixel Latin", "PingFang SC", "Microsoft YaHei", sans-serif;
   font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: none;
   --night-sky: #1a1a2e;
   --deep-blue: #16213e;
   --moonlight: #e8dff5;
@@ -18,6 +34,7 @@
   --border: #000000;
   --paper-ink: #8b6f47;
   --scene-backdrop: url("/images/recraft/moon-forest-shell.png");
+  --final-moon: url("/images/recraft/prop-final-moon.png");
   --pixel-shadow: 4px 4px 0 rgba(0, 0, 0, 0.82);
   --pixel-shadow-big: 8px 8px 0 rgba(0, 0, 0, 0.82);
 }
@@ -105,14 +122,20 @@ button {
   box-shadow: var(--pixel-shadow);
 }
 
+.topbar > div {
+  min-width: 0;
+}
+
 .topbar h2 {
   margin: 5px 0 0;
-  font-family: "Press Start 2P", "Noto Sans SC", monospace;
-  font-size: clamp(14px, 4vw, 17px);
+  font-family: "Fusion Pixel CN", "Fusion Pixel Latin", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: clamp(18px, 5vw, 21px);
+  font-weight: 400;
   line-height: 1.35;
   letter-spacing: 0;
   color: var(--moonlight);
   text-shadow: 2px 2px 0 #000;
+  overflow-wrap: anywhere;
 }
 
 .topbar__label,
@@ -120,8 +143,9 @@ button {
   margin: 0;
   color: var(--lavender);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: 0;
+  overflow-wrap: anywhere;
 }
 
 .icon-button {
@@ -152,6 +176,7 @@ button {
   background: rgba(42, 42, 78, 0.88);
   box-shadow: var(--pixel-shadow);
   font-size: 11px;
+  font-weight: 400;
 }
 
 .progress > span {
@@ -206,22 +231,32 @@ button {
   background: var(--night-sky);
   color: var(--moonlight);
   box-shadow: 0 -4px 0 rgba(0, 0, 0, 0.82);
+  font-family: "Fusion Pixel CN", "Fusion Pixel Latin", "PingFang SC", "Microsoft YaHei", sans-serif;
+  overflow: hidden;
+}
+
+.dialog > div {
+  min-width: 0;
 }
 
 .dialog__title {
   margin: 0 0 9px;
   color: var(--fox-orange);
-  font-family: "Press Start 2P", "Noto Sans SC", monospace;
-  font-size: 12px;
+  font-size: 14px;
+  font-weight: 400;
   line-height: 1.45;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .dialog__text {
   min-height: 66px;
   margin: 0;
   color: var(--moonlight);
-  font-size: 14px;
-  line-height: 1.65;
+  font-size: 13px;
+  line-height: 1.72;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .button {
@@ -231,11 +266,14 @@ button {
   border-radius: 0;
   color: var(--night-sky);
   background: var(--fox-orange);
-  font-family: "Press Start 2P", "Noto Sans SC", monospace;
-  font-size: 12px;
-  font-weight: 700;
+  font-family: "Fusion Pixel CN", "Fusion Pixel Latin", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.2;
   letter-spacing: 0;
   box-shadow: var(--pixel-shadow);
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .button:disabled {
@@ -312,7 +350,7 @@ button {
 .intro h1,
 .ending h2 {
   margin: 10px 0 16px;
-  font-family: "Press Start 2P", "Noto Sans SC", monospace;
+  font-family: "Press Start 2P", "Fusion Pixel CN", "Fusion Pixel Latin", monospace;
   font-size: clamp(24px, 9vw, 34px);
   line-height: 1.35;
   letter-spacing: 0;
@@ -320,10 +358,15 @@ button {
   text-shadow: 3px 3px 0 #000;
 }
 
+.ending h2 {
+  margin: 0 0 4px;
+}
+
 .intro__copy {
   margin: 0 auto 26px;
   color: var(--lavender);
-  font-size: 14px;
+  font-family: "Fusion Pixel CN", "Fusion Pixel Latin", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 13px;
   line-height: 1.8;
 }
 
@@ -333,6 +376,11 @@ button {
 
 .ending {
   z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .ending::before {
@@ -345,26 +393,39 @@ button {
 }
 
 .ending__moon {
-  width: 96px;
-  height: 96px;
-  margin-bottom: 18px;
-  border: 3px solid #000;
-  border-radius: 0;
-  background: var(--moonlight);
-  box-shadow: var(--pixel-shadow-big);
+  width: clamp(128px, 22svh, 198px);
+  aspect-ratio: 1;
+  margin: -2px auto -8px;
+  background: var(--final-moon) center / contain no-repeat;
+  image-rendering: pixelated;
+  filter:
+    drop-shadow(0 0 10px rgba(255, 212, 163, 0.5))
+    drop-shadow(4px 4px 0 rgba(0, 0, 0, 0.78));
+}
+
+.ending > .eyebrow {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  padding: 5px 10px;
+  border: 2px solid #000;
+  color: var(--cream);
+  background: rgba(26, 26, 46, 0.72);
+  text-shadow: 2px 2px 0 #000;
 }
 
 .ending__lines {
   width: min(100%, 360px);
-  max-height: 47vh;
-  margin: 0 auto 18px;
+  max-height: min(40svh, 380px);
+  margin: 0 auto 8px;
   padding: 18px;
   overflow-y: auto;
   border: 3px solid #000;
   color: var(--paper-ink);
   background: var(--cream);
   box-shadow: var(--pixel-shadow-big);
-  font-size: 14px;
+  font-family: "Fusion Pixel CN", "Fusion Pixel Latin", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 13px;
   line-height: 1.9;
   text-align: left;
 }
@@ -374,10 +435,64 @@ button {
 }
 
 .ending__sign {
-  margin: 0 0 24px;
-  color: var(--warm-peach);
-  font-family: "Press Start 2P", "Noto Sans SC", monospace;
-  font-size: 12px;
+  margin: 0 0 10px;
+  color: var(--cream);
+  font-family: "Press Start 2P", "Fusion Pixel CN", "Fusion Pixel Latin", monospace;
+  font-size: clamp(16px, 4.4vw, 20px);
+  text-shadow: 3px 3px 0 #000;
+}
+
+.edit-panel {
+  position: fixed;
+  z-index: 50;
+  right: 10px;
+  bottom: 10px;
+  width: min(250px, calc(100vw - 20px));
+  max-height: 42svh;
+  padding: 10px;
+  overflow: auto;
+  border: 3px solid #000;
+  color: var(--moonlight);
+  background: rgba(26, 26, 46, 0.94);
+  box-shadow: var(--pixel-shadow);
+  font-family: "Fusion Pixel CN", "Fusion Pixel Latin", monospace;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.edit-panel__title {
+  color: var(--fox-orange);
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.edit-panel__hint,
+.edit-panel__meta {
+  color: var(--lavender);
+  margin-bottom: 6px;
+}
+
+.edit-panel__buttons {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+  margin-bottom: 7px;
+}
+
+.edit-panel button {
+  min-height: 30px;
+  padding: 0 4px;
+  border: 2px solid #000;
+  border-radius: 0;
+  color: var(--night-sky);
+  background: var(--soft-pink);
+  font: inherit;
+}
+
+.edit-panel pre {
+  margin: 0;
+  white-space: pre-wrap;
+  color: var(--cream);
 }
 
 

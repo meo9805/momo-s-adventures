@@ -1,13 +1,21 @@
-# Recraft image drop zone
+# Curated image assets
 
-Put exported PNG files here with these names:
+These files are the production-ready transparent PNG assets used by the game.
 
-- `moon-forest-shell.png`: vertical shell background behind the top HUD, progress bar, and game canvas.
-- `chapter-nico-bg.png`: Nico chapter background.
-- `chapter-rabbits-bg.png`: rabbit farm/garden background.
-- `chapter-gliders-bg.png`: tree canopy background.
-- `chapter-cats-bg.png`: apartment entrance background.
-- `chapter-plaza-bg.png`: Erqi Square memory background.
-- `sprites-animals.png`: transparent sprite sheet for Nico, rabbits, sugar gliders, cats, and small props.
+- `moon-forest-shell.png`: final moon forest background. Keep as-is unless the full visual direction changes.
+- `animal-nico.png`: finalized Nico asset.
+- `animal-rabbit-tutu.png`: replacement Tutu asset, cropped from `素材补充.png`.
+- `prop-envelope.png`: finalized envelope prop.
+- `prop-carrot-lantern.png`: finalized carrot lantern prop.
+- `prop-moon-shard.png`: finalized moon shard prop, cropped from a local generated image.
+- `prop-photo-folder.png`: finalized photo folder prop, cropped from a local generated image.
+- `animal-rabbit-dudu.png`: replacement Dudu asset, cropped from `素材补充.png`.
+- `animal-glider-zizi.png`: replacement white sugar glider asset, cropped from `素材补充.png`.
+- `animal-glider-meimei.png`: replacement mottled sugar glider asset, cropped from `素材补充.png`.
+- `animal-cat-xiaomi.png`: replacement cow cat asset, cropped from local generated animal sheet and matched to Xiaomii's photo features.
+- `animal-cat-xiaoxiaomi.png`: replacement tabby kitten asset, cropped from `小小咪.png`.
+- `animal-pigeon-1.png` ... `animal-pigeon-7.png`: replacement Erqi Square pigeon assets, cropped from `素材补充.png`.
+- `prop-open-letter.png`: generated open letter plus envelope asset for Nico's first chapter.
+- `prop-final-moon.png`: cropped full moon from `素材补充.png`, used in the final confession screen.
 
-The current app already uses `moon-forest-shell.png` as a CSS background if it exists. Missing files are fine during development.
+Do not commit raw prompt exports or downloaded zip packs here. Curate single transparent PNGs first, then wire only the final files into the app.

@@ -31,11 +31,28 @@ type Hotspot = {
   onTap: () => void;
 };
 
+type EditPosition = {
+  stage: Chapter["id"];
+  id: string;
+  x: number;
+  y: number;
+};
+
 const WORLD_WIDTH = 390;
 const WORLD_HEIGHT = 560;
 const TOTAL_FRAGMENTS = STORY.chapters.length;
-const ASSET_BASE = import.meta.env.BASE_URL;
-const assetUrl = (path: string) => `${ASSET_BASE}${path.replace(/^\//, "")}`;
+const assetUrl = (path: string) => new URL(path.replace(/^\//, ""), window.location.href).toString();
+const EDIT_MODE = new URLSearchParams(window.location.search).get("edit") === "1";
+
+const editState: {
+  stage: Chapter["id"] | "";
+  selected: string;
+  positions: Record<string, EditPosition>;
+} = {
+  stage: "",
+  selected: "",
+  positions: {}
+};
 
 const colors = {
   black: 0x000000,
@@ -72,6 +89,14 @@ document.documentElement.style.setProperty(
   "--scene-backdrop",
   `url("${assetUrl("images/recraft/moon-forest-shell.png")}")`
 );
+document.documentElement.style.setProperty(
+  "--final-moon",
+  `url("${assetUrl("images/recraft/prop-final-moon.png")}")`
+);
+
+if (EDIT_MODE) {
+  document.body.classList.add("edit-mode");
+}
 
 class AmbientPlayer {
   private ctx: AudioContext | null = null;
@@ -129,6 +154,8 @@ class AmbientPlayer {
 declare global {
   interface Window {
     webkitAudioContext?: typeof AudioContext;
+    __momoEditPositions?: Record<string, EditPosition>;
+    __momoCopyPositions?: () => Promise<Record<string, EditPosition>>;
   }
 }
 
@@ -145,6 +172,7 @@ class MoonForestScene extends Phaser.Scene {
   private dialogLines: string[] = [];
   private dialogIndex = 0;
   private dialogDone: (() => void) | null = null;
+  private stageAssist: (() => void) | null = null;
 
   constructor(bridge: Bridge) {
     super("MoonForestScene");
@@ -160,8 +188,17 @@ class MoonForestScene extends Phaser.Scene {
     this.load.image("glider-mottle", assetUrl("images/recraft/animal-glider-meimei.png"));
     this.load.image("cat-cow", assetUrl("images/recraft/animal-cat-xiaomi.png"));
     this.load.image("cat-tabby", assetUrl("images/recraft/animal-cat-xiaoxiaomi.png"));
+    for (let index = 1; index <= 7; index += 1) {
+      this.load.image(`pigeon-${index}`, assetUrl(`images/recraft/animal-pigeon-${index}.png`));
+    }
     this.load.image("envelope", assetUrl("images/recraft/prop-envelope.png"));
+    this.load.image("open-letter", assetUrl("images/recraft/prop-open-letter.png"));
     this.load.image("carrot-lantern", assetUrl("images/recraft/prop-carrot-lantern.png"));
+    this.load.image("moon-shard", assetUrl("images/recraft/prop-moon-shard.png"));
+    this.load.image("photo-folder", assetUrl("images/recraft/prop-photo-folder.png"));
+    this.load.image("photo-folder-nico", assetUrl("images/recraft/prop-photo-folder-nico.png"));
+    this.load.image("photo-folder-xiaomi", assetUrl("images/recraft/prop-photo-folder-xiaomi.png"));
+    this.load.image("photo-folder-xiaoxiaomi", assetUrl("images/recraft/prop-photo-folder-xiaoxiaomi.png"));
   }
 
   create() {
@@ -171,11 +208,19 @@ class MoonForestScene extends Phaser.Scene {
   }
 
   primaryAction() {
+    if (EDIT_MODE) {
+      this.editStep(1);
+      return;
+    }
     if (this.dialogLines.length > 0) {
       this.advanceDialogLine();
       return;
     }
     if (!this.stageComplete) {
+      if (this.stageAssist) {
+        this.stageAssist();
+        return;
+      }
       this.exploreCurrentChapter();
       return;
     }
@@ -194,6 +239,13 @@ class MoonForestScene extends Phaser.Scene {
 
   tapAt(worldX: number, worldY: number) {
     this.handleStageTap(worldX, worldY);
+  }
+
+  editStep(delta: number) {
+    if (!EDIT_MODE) return;
+    const nextIndex = Phaser.Math.Clamp(this.stageIndex + delta, 0, STORY.chapters.length - 1);
+    this.fragments = nextIndex;
+    this.showStage(nextIndex);
   }
 
   private showStage(index: number) {
@@ -225,12 +277,21 @@ class MoonForestScene extends Phaser.Scene {
     }
 
     this.input.on("pointerdown", this.handlePointerDown, this);
-    this.updateUi(this.activeChapter.instruction, "继续故事", true);
+    this.updateUi(
+      this.activeChapter.instruction,
+      EDIT_MODE ? "下一章定位" : this.getStageActionLabel(),
+      true
+    );
+    if (EDIT_MODE) {
+      editState.stage = this.activeChapter.id;
+      renderEditPanel();
+    }
   }
 
   private clearStage() {
     this.input.removeAllListeners("pointerdown");
     this.hotspots = [];
+    this.stageAssist = null;
     this.timers.forEach((timer) => timer.remove(false));
     this.timers = [];
     this.activeObjects.forEach((object) => object.destroy());
@@ -255,6 +316,17 @@ class MoonForestScene extends Phaser.Scene {
       actionEnabled: enabled,
       fragments: this.fragments
     });
+  }
+
+  private getStageActionLabel() {
+    const labels: Record<Chapter["id"], string> = {
+      nico: "轻点信封",
+      rabbits: "点亮一盏",
+      gliders: "找一片月光",
+      cats: "打开一张",
+      plaza: "放飞一只"
+    };
+    return labels[this.activeChapter.id];
   }
 
   private completeStage(text = this.activeChapter.completeText) {
@@ -313,8 +385,6 @@ class MoonForestScene extends Phaser.Scene {
     const shade = this.addToStage(this.add.graphics());
     shade.fillStyle(colors.night, 0.12);
     shade.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-    this.drawMoonProgress();
-    this.addChapterTitle();
   }
 
   private addCoverImage(key: string) {
@@ -424,13 +494,13 @@ class MoonForestScene extends Phaser.Scene {
   private drawNicoStage() {
     this.addGroundGlow(146, 484, 146, 34);
     this.addGroundGlow(276, 398, 96, 26, 0.2);
-    const nico = this.addAsset("nico", 136, 438, 92, 92);
-    nico.setDepth(438);
-    const envelope = this.addAsset("envelope", 276, 358, 72, 56);
-    envelope.setDepth(458);
+    const nico = this.addAsset("nico", 141, 461, 92, 92);
+    nico.setDepth(461);
+    const envelope = this.addAsset("envelope", 191, 273, 72, 56);
+    envelope.setDepth(373);
     const prompt = this.addToStage(
       this.add
-        .text(276, 400, "轻点信封", {
+        .text(191, 315, "TAP", {
           fontFamily: '"Silkscreen", "Noto Sans SC", monospace',
           fontSize: "12px",
           color: "#1a1a2e",
@@ -443,55 +513,130 @@ class MoonForestScene extends Phaser.Scene {
 
     this.floatObject(nico, 5, 1400);
     this.floatObject(envelope, 5, 1000);
-    this.makeInteractive(envelope, () => {
-      this.startDialogSequence(STORY.nicoLines, () => this.completeStage());
+    let letterHotspot: Hotspot | null = null;
+    const revealFirstMoon = () => {
+      letterHotspot!.active = false;
+      letterHotspot!.target.destroy();
+      envelope.destroy();
+      prompt.destroy();
+      const shard = this.addAsset("moon-shard", 191, 320, 42, 48);
+      shard.setDepth(520);
+      this.addMoonBurst(191, 320);
+      this.tweens.add({
+        targets: shard,
+        y: 286,
+        alpha: 0,
+        duration: 900,
+        ease: "Cubic.easeOut",
+        onComplete: () => shard.destroy()
+      });
+      this.completeStage(STORY.nicoLines[2]);
+    };
+    const openLetter = () => {
+      const letterCopy = "堡堡，今晚月亮不见了。\n不是 nico偷走了，是 nico想让 momo 亲手找到今晚的浪漫。";
+      const letter = this.addToStage(this.add.container(195, 284));
+      letter.setDepth(540);
+      const letterArt = this.add.image(0, 0, "open-letter").setOrigin(0.5);
+      const letterScale = Math.min(300 / letterArt.width, 292 / letterArt.height);
+      letterArt.setScale(letterScale);
+      letter.add(letterArt);
+      letter.setSize(letterArt.displayWidth, letterArt.displayHeight);
+      const letterText = this.add
+        .text(-78, -94, letterCopy, {
+          fontFamily: '"Fusion Pixel CN", "Fusion Pixel Latin", "PingFang SC", "Microsoft YaHei", sans-serif',
+          fontSize: "11px",
+          color: "#8b6f47",
+          lineSpacing: 3,
+          wordWrap: { width: 160 }
+        })
+        .setOrigin(0, 0);
+      letterText.setFixedSize(160, 84);
+      letter.add(letterText);
+      prompt.setVisible(false);
       envelope.disableInteractive();
-      prompt.setText("第一片月光");
+      letterHotspot = this.makeInteractive(letter, revealFirstMoon);
+      this.updateUi("信纸展开了。再轻点信纸，把第一片月光接出来。", "轻点信纸", true);
+      this.haptic();
+    };
+    const envelopeHotspot = this.makeInteractive(envelope, () => {
+      openLetter();
     });
+    this.makeEditable("nico", nico, 0);
+    this.makeEditable("envelope", envelope, 100);
+    this.stageAssist = () => {
+      if (letterHotspot?.active) {
+        letterHotspot.onTap();
+        return;
+      }
+      envelopeHotspot.onTap();
+    };
   }
 
   private drawRabbitStage() {
     this.addGroundGlow(188, 482, 280, 42);
-    const tutu = this.addAsset("rabbit-brown", 116, 438, 78, 78);
-    const dudu = this.addAsset("rabbit-dark", 258, 438, 78, 78);
-    tutu.setDepth(438);
-    dudu.setDepth(438);
+    const tutu = this.addAsset("rabbit-brown", 148, 454, 78, 78);
+    const dudu = this.addAsset("rabbit-dark", 219, 445, 82, 92);
+    tutu.setDepth(454);
+    dudu.setDepth(445);
     this.floatObject(tutu, 4, 1200);
     this.floatObject(dudu, 5, 1300);
+    this.makeEditable("tutu", tutu, 0);
+    this.makeEditable("dudu", dudu, 0);
 
     const lanternPositions = [
-      [96, 326],
-      [176, 326],
-      [256, 326]
+      [227, 195],
+      [161, 264],
+      [214, 339]
     ];
     let lit = 0;
+    const lanternHotspots: Hotspot[] = [];
     lanternPositions.forEach(([x, y], index) => {
       const lantern = this.addAsset("carrot-lantern", x, y, 42, 58);
       const glow = this.addToStage(this.add.rectangle(x, y + 5, 58, 58, colors.moon, 0));
       glow.setBlendMode(Phaser.BlendModes.ADD);
       this.floatObject(lantern, 4 + index, 1100 + index * 80);
-      this.makeInteractive(lantern, () => {
+      const hotspot = this.makeInteractive(lantern, () => {
         lantern.disableInteractive();
         lit += 1;
-        this.tweens.add({ targets: glow, alpha: 0.5, scale: 1.25, duration: 260 });
+        this.tweens.add({
+          targets: lantern,
+          y: lantern.y - Phaser.Math.Between(130, 180),
+          alpha: 0,
+          duration: 900,
+          ease: "Cubic.easeOut",
+          onComplete: () => lantern.destroy()
+        });
+        this.tweens.add({
+          targets: glow,
+          y: glow.y - 72,
+          alpha: 0.5,
+          scale: 1.35,
+          duration: 360,
+          yoyo: true,
+          onComplete: () => glow.destroy()
+        });
         if (lit === 3) {
           this.startDialogSequence([STORY.rabbitLines[index]], () => this.completeStage());
         } else {
-          this.updateUi(STORY.rabbitLines[index], "继续故事", true);
+          this.updateUi(STORY.rabbitLines[index], "点亮下一盏", true);
         }
         this.haptic();
       });
+      lanternHotspots.push(hotspot);
+      this.makeEditable(`carrot-lantern-${index + 1}`, lantern, 0);
     });
+    this.stageAssist = () => lanternHotspots.find((hotspot) => hotspot.active)?.onTap();
   }
 
   private drawGliderStage() {
-    this.addMemorySign(195, 504, "小区树下的姊姊妹妹");
-    const sister = this.addAsset("glider-white", 126, 360, 70, 70);
-    const sister2 = this.addAsset("glider-mottle", 268, 394, 70, 70);
-    sister.setDepth(360);
-    sister2.setDepth(394);
+    const sister = this.addAsset("glider-white", 158, 462, 78, 82);
+    const sister2 = this.addAsset("glider-mottle", 243, 463, 78, 82);
+    sister.setDepth(462);
+    sister2.setDepth(463);
     this.floatObject(sister, 10, 1650);
     this.floatObject(sister2, 12, 1800);
+    this.makeEditable("zizi", sister, 0);
+    this.makeEditable("meimei", sister2, 0);
 
     let caught = 0;
     const needed = 5;
@@ -502,23 +647,27 @@ class MoonForestScene extends Phaser.Scene {
     ]);
 
     const shardPositions = [
-      [92, 292],
-      [184, 278],
-      [298, 302],
-      [128, 430],
-      [312, 456]
+      [172, 169],
+      [231, 219],
+      [162, 266],
+      [257, 354],
+      [160, 344]
     ];
+    const shardHotspots: Hotspot[] = [];
     shardPositions.forEach(([x, y], index) => {
-      const shard = this.addToStage(this.add.image(x, y, "moon-shard").setScale(1.55));
+      const shard = this.addAsset("moon-shard", x, y, 38, 44);
       shard.setDepth(y + 10);
+      const shardScaleX = shard.scaleX;
+      const shardScaleY = shard.scaleY;
       this.floatObject(shard, 6 + index, 1200 + index * 90);
-      this.makeInteractive(shard, () => {
+      const hotspot = this.makeInteractive(shard, () => {
         shard.disableInteractive();
         caught += 1;
         this.tweens.add({
           targets: shard,
           alpha: 0,
-          scale: 2.2,
+          scaleX: shardScaleX * 1.8,
+          scaleY: shardScaleY * 1.8,
           duration: 220,
           onComplete: () => shard.destroy()
         });
@@ -526,77 +675,98 @@ class MoonForestScene extends Phaser.Scene {
         if (nextLine && caught >= needed) {
           this.startDialogSequence([nextLine], () => this.completeStage());
         } else if (nextLine) {
-          this.updateUi(nextLine, "继续故事", true);
+          this.updateUi(nextLine, "找下一片", true);
         }
         this.haptic();
       });
+      shardHotspots.push(hotspot);
+      this.makeEditable(`moon-shard-${index + 1}`, shard, 10);
     });
+    this.stageAssist = () => shardHotspots.find((hotspot) => hotspot.active)?.onTap();
   }
 
   private drawCatStage() {
     this.addGroundGlow(195, 480, 292, 44);
-    this.addMemorySign(195, 258, "楼下遇见小咪");
-    const cowCat = this.addAsset("cat-cow", 118, 438, 76, 66);
-    const tabby = this.addAsset("cat-tabby", 265, 446, 58, 52);
-    cowCat.setDepth(438);
-    tabby.setDepth(446);
+    const cowCat = this.addAsset("cat-cow", 149, 449, 86, 88);
+    const tabby = this.addAsset("cat-tabby", 235, 465, 72, 70);
+    cowCat.setDepth(449);
+    tabby.setDepth(465);
     this.floatObject(cowCat, 4, 1260);
     this.floatObject(tabby, 4, 1180);
+    this.makeEditable("xiaomi", cowCat, 0);
+    this.makeEditable("xiaoxiaomi", tabby, 0);
 
     const boxes = [
-      [72, 318, STORY.photoSlots[0].label, STORY.catLines[0]],
-      [195, 300, STORY.photoSlots[1].label, STORY.catLines[1]],
-      [318, 318, STORY.photoSlots[2].label, STORY.catLines[2]]
+      [234, 367, STORY.catLines[0], "photo-folder-xiaomi"],
+      [233, 202, STORY.catLines[1], "photo-folder-nico"],
+      [140, 292, STORY.catLines[2], "photo-folder-xiaoxiaomi"]
     ] as const;
     let opened = 0;
-    boxes.forEach(([x, y, label, line], index) => {
-      const card = this.addPhotoCard(x, y, label);
-      this.makeInteractive(card, () => {
-        card.disableInteractive();
+    const cardHotspots: Hotspot[] = [];
+    let previewHotspot: Hotspot | null = null;
+    const openPhotoPreview = (card: Phaser.GameObjects.Image, x: number, y: number, line: string, photoKey: string) => {
+      card.disableInteractive();
+      const shade = this.addToStage(this.add.rectangle(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, WORLD_WIDTH, WORLD_HEIGHT, colors.black, 0.48));
+      shade.setDepth(780);
+      const preview = this.addAsset(photoKey, WORLD_WIDTH / 2, WORLD_HEIGHT / 2, WORLD_WIDTH - 34, WORLD_WIDTH - 34);
+      preview.setDepth(790);
+      previewHotspot = this.makeInteractive(preview, () => {
+        previewHotspot!.active = false;
+        shade.destroy();
+        preview.destroy();
+        card.destroy();
         opened += 1;
         this.addMoonBurst(x, y - 8);
         if (opened === boxes.length) {
           this.startDialogSequence([line], () => this.completeStage());
         } else {
-          this.updateUi(line, "继续故事", true);
+          this.updateUi(line, "打开下一张", true);
         }
         this.haptic();
       });
-      if (index === 1) {
-        this.tweens.add({ targets: card, y: y - 5, yoyo: true, repeat: -1, duration: 1200 });
-      }
+      this.updateUi(line, "轻点照片收起", true);
+      this.haptic();
+    };
+    boxes.forEach(([x, y, line, photoKey], index) => {
+      const card = this.addPhotoCard(x, y, photoKey);
+      const hotspot = this.makeInteractive(card, () => {
+        openPhotoPreview(card, x, y, line, photoKey);
+      });
+      cardHotspots.push(hotspot);
+      this.makeEditable(`photo-folder-${index + 1}`, card, 30);
     });
+    this.stageAssist = () => {
+      if (previewHotspot?.active) {
+        previewHotspot.onTap();
+        return;
+      }
+      cardHotspots.find((hotspot) => hotspot.active)?.onTap();
+    };
   }
 
   private drawPlazaStage() {
     this.addGroundGlow(195, 432, 294, 52);
-    this.addMemorySign(195, 318, "郑州二七广场的夜风");
-    const moon = this.addToStage(this.add.rectangle(195, 210, 54, 54, colors.moon, 0.18));
-    this.tweens.add({ targets: moon, alpha: 0.42, yoyo: true, repeat: -1, duration: 1400 });
 
     let released = 0;
-    const needed = 7;
+    const birdAssetKeys = ["pigeon-3", "pigeon-5", "pigeon-6", "pigeon-7"];
+    const birdPositions = [
+      [216, 160],
+      [151, 218],
+      [254, 252],
+      [191, 310]
+    ] as const;
+    const needed = birdPositions.length;
     const lineAt = new Map([
-      [2, STORY.plazaLines[0]],
-      [5, STORY.plazaLines[1]],
-      [7, STORY.plazaLines[2]]
+      [1, STORY.plazaLines[0]],
+      [3, STORY.plazaLines[1]],
+      [4, STORY.plazaLines[2]]
     ]);
+    const birdHotspots: Hotspot[] = [];
     for (let i = 0; i < needed; i += 1) {
-      const birdPositions = [
-        [72, 390],
-        [112, 366],
-        [154, 398],
-        [198, 366],
-        [238, 398],
-        [282, 366],
-        [320, 390]
-      ];
       const [x, y] = birdPositions[i];
-      const bird = this.addToStage(
-        this.add.image(x, y, "pigeon").setScale(1.15)
-      );
+      const bird = this.addAsset(birdAssetKeys[i], x, y, 48, 48);
       bird.setDepth(y);
-      this.makeInteractive(bird, () => {
+      const hotspot = this.makeInteractive(bird, () => {
         bird.disableInteractive();
         released += 1;
         this.tweens.add({
@@ -612,52 +782,18 @@ class MoonForestScene extends Phaser.Scene {
         if (nextLine && released >= needed) {
           this.startDialogSequence([nextLine], () => this.completeStage());
         } else if (nextLine) {
-          this.updateUi(nextLine, "继续故事", true);
-        }
-        if (released === needed) {
-          this.tweens.add({ targets: moon, alpha: 0.95, scale: 1.58, duration: 900 });
+          this.updateUi(nextLine, "放飞下一只", true);
         }
       });
+      birdHotspots.push(hotspot);
+      this.makeEditable(`pigeon-${i + 1}`, bird, 0);
     }
+    this.stageAssist = () => birdHotspots.find((hotspot) => hotspot.active)?.onTap();
   }
 
-  private addPhotoCard(x: number, y: number, label: string) {
-    const card = this.addToStage(this.add.container(x, y));
+  private addPhotoCard(x: number, y: number, photoKey = "photo-folder") {
+    const card = this.addAsset(photoKey, x, y, 86, 86);
     card.setDepth(y + 30);
-    const g = this.add.graphics();
-    g.fillStyle(colors.black, 0.82);
-    g.fillRect(-41, -52, 86, 110);
-    g.fillStyle(colors.night, 1);
-    g.fillRect(-45, -56, 86, 110);
-    g.lineStyle(3, colors.black, 1);
-    g.strokeRect(-45, -56, 86, 110);
-    g.fillStyle(colors.deepBlue, 1);
-    g.fillRect(-34, -43, 64, 44);
-    g.lineStyle(3, colors.black, 1);
-    g.strokeRect(-34, -43, 64, 44);
-    card.add(g);
-    card.add(
-      this.add
-        .text(0, -15, "照片\n待补充", {
-          fontFamily: '"Silkscreen", "Noto Sans SC", monospace',
-          fontSize: "10px",
-          color: "#e8dff5",
-          align: "center"
-        })
-        .setOrigin(0.5)
-    );
-    card.add(
-      this.add
-        .text(0, 25, label, {
-          fontFamily: '"Silkscreen", "Noto Sans SC", monospace',
-          fontSize: "8px",
-          color: "#b4a5d5",
-          align: "center",
-          wordWrap: { width: 70 }
-        })
-        .setOrigin(0.5)
-    );
-    card.setSize(86, 110);
     return card;
   }
 
@@ -681,6 +817,7 @@ class MoonForestScene extends Phaser.Scene {
   }
 
   private floatObject(target: Phaser.GameObjects.GameObject, distance: number, duration: number) {
+    if (EDIT_MODE) return;
     this.tweens.add({
       targets: target,
       y: `-=${distance}`,
@@ -694,7 +831,7 @@ class MoonForestScene extends Phaser.Scene {
   private makeInteractive(
     object: HotspotTarget & { scaleX: number; scaleY: number },
     onTap: () => void
-  ) {
+  ): Hotspot {
     const baseScaleX = object.scaleX;
     const baseScaleY = object.scaleY;
     const radius = Math.max(object.displayWidth ?? 64, object.displayHeight ?? 64, 48) * 0.62;
@@ -710,6 +847,7 @@ class MoonForestScene extends Phaser.Scene {
     object.on("pointerout", () => {
       this.tweens.add({ targets: object, scaleX: baseScaleX, scaleY: baseScaleY, duration: 120 });
     });
+    return hotspot;
   }
 
   private addObjectHotspot(target: HotspotTarget, radius: number, onTap: () => void) {
@@ -728,6 +866,7 @@ class MoonForestScene extends Phaser.Scene {
   }
 
   private handleStageTap(x: number, y: number) {
+    if (EDIT_MODE) return;
     for (let index = this.hotspots.length - 1; index >= 0; index -= 1) {
       const hotspot = this.hotspots[index];
       if (!hotspot.active || !hotspot.target.active) continue;
@@ -737,6 +876,37 @@ class MoonForestScene extends Phaser.Scene {
         return;
       }
     }
+  }
+
+  private makeEditable(id: string, object: Phaser.GameObjects.Image, depthOffset: number) {
+    if (!EDIT_MODE) return;
+    const key = `${this.activeChapter.id}.${id}`;
+    const saved = editState.positions[key];
+    if (saved) {
+      object.setPosition(saved.x, saved.y);
+      object.setDepth(saved.y + depthOffset);
+    }
+    syncEditPosition(this.activeChapter.id, id, object);
+    object.setInteractive({ draggable: true, useHandCursor: true });
+    this.input.setDraggable(object);
+    object.on("dragstart", () => {
+      editState.selected = key;
+      object.setAlpha(0.72);
+      object.setDepth(999);
+      syncEditPosition(this.activeChapter.id, id, object);
+    });
+    object.on("drag", (_pointer: Phaser.Input.Pointer, dragX: number, dragY: number) => {
+      const x = Phaser.Math.Clamp(Math.round(dragX), 0, WORLD_WIDTH);
+      const y = Phaser.Math.Clamp(Math.round(dragY), 0, WORLD_HEIGHT);
+      object.setPosition(x, y);
+      object.setDepth(y + depthOffset);
+      syncEditPosition(this.activeChapter.id, id, object);
+    });
+    object.on("dragend", () => {
+      object.setAlpha(1);
+      object.setDepth(Math.round(object.y) + depthOffset);
+      syncEditPosition(this.activeChapter.id, id, object);
+    });
   }
 
   private createTextures() {
@@ -968,6 +1138,73 @@ function line(
   ctx.stroke();
 }
 
+function syncEditPosition(stage: Chapter["id"], id: string, object: Phaser.GameObjects.Image) {
+  if (!EDIT_MODE) return;
+  const key = `${stage}.${id}`;
+  editState.positions[key] = {
+    stage,
+    id,
+    x: Math.round(object.x),
+    y: Math.round(object.y)
+  };
+  const payload = JSON.stringify(editState.positions);
+  window.__momoEditPositions = editState.positions;
+  window.localStorage.setItem("momoEditPositions", payload);
+  document.body.dataset.momoEditPositions = payload;
+  renderEditPanel();
+}
+
+function renderEditPanel() {
+  if (!EDIT_MODE) return;
+  const panel = ensureEditPanel();
+  const rows = Object.values(editState.positions)
+    .filter((position) => position.stage === editState.stage)
+    .sort((a, b) => a.id.localeCompare(b.id))
+    .map((position) => `${position.id}: [${position.x}, ${position.y}]`);
+  const selected = editState.selected ? editState.selected.replace(`${editState.stage}.`, "") : "未选择";
+  panel.querySelector<HTMLElement>("[data-edit-stage]")!.textContent =
+    STORY.chapters.find((chapter) => chapter.id === editState.stage)?.chip ?? "";
+  panel.querySelector<HTMLElement>("[data-edit-selected]")!.textContent = selected;
+  panel.querySelector<HTMLElement>("[data-edit-positions]")!.textContent = rows.join("\n");
+}
+
+function ensureEditPanel() {
+  let panel = document.querySelector<HTMLElement>("#edit-panel");
+  if (panel) return panel;
+  panel = document.createElement("aside");
+  panel.id = "edit-panel";
+  panel.className = "edit-panel";
+  panel.innerHTML = `
+    <div class="edit-panel__title">定位模式</div>
+    <div class="edit-panel__hint">拖动画面里的动物/道具；底部按钮或这里切章节。</div>
+    <div class="edit-panel__buttons">
+      <button type="button" data-edit-prev>上一章</button>
+      <button type="button" data-edit-next>下一章</button>
+      <button type="button" data-edit-copy>复制坐标</button>
+    </div>
+    <div class="edit-panel__meta">章节：<span data-edit-stage></span>｜选中：<span data-edit-selected>未选择</span></div>
+    <pre data-edit-positions></pre>
+  `;
+  document.body.appendChild(panel);
+  return panel;
+}
+
+function bindEditPanel(scene: MoonForestScene) {
+  if (!EDIT_MODE) return;
+  const panel = ensureEditPanel();
+  panel.querySelector<HTMLButtonElement>("[data-edit-prev]")!.addEventListener("click", () => scene.editStep(-1));
+  panel.querySelector<HTMLButtonElement>("[data-edit-next]")!.addEventListener("click", () => scene.editStep(1));
+  panel.querySelector<HTMLButtonElement>("[data-edit-copy]")!.addEventListener("click", () => {
+    void window.__momoCopyPositions?.();
+  });
+  window.__momoCopyPositions = async () => {
+    const payload = JSON.stringify(editState.positions, null, 2);
+    await navigator.clipboard?.writeText(payload);
+    return editState.positions;
+  };
+  ui.intro.classList.add("intro--hidden");
+}
+
 function mountUi(scene: MoonForestScene) {
   ui.primaryAction.addEventListener("click", () => scene.primaryAction());
   ui.restartButton.addEventListener("click", () => {
@@ -1008,6 +1245,7 @@ const scene = new MoonForestScene({
 });
 
 mountUi(scene);
+bindEditPanel(scene);
 
 new Phaser.Game({
   type: Phaser.AUTO,
@@ -1040,3 +1278,9 @@ document.querySelector<HTMLElement>("#game-root")!.addEventListener("pointerdown
 ui.startButton.addEventListener("click", () => {
   ui.intro.classList.add("intro--hidden");
 });
+
+if ("serviceWorker" in navigator && import.meta.env.PROD) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register(assetUrl("sw.js")).catch(() => undefined);
+  });
+}

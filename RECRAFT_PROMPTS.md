@@ -121,3 +121,32 @@ blurry, smooth gradients, anti-aliased edges, realistic animal photo, semi-reali
 - Do not export JPG for pixel art.
 - Disable smoothing/upscaling if Recraft offers that option.
 - If Recraft outputs a large image, keep the large PNG. I will crop and scale it inside the project.
+
+## 7. Current One-Shot Image Prompt
+
+Use this when generating the next replacement batch for 姊姊妹妹、兔子、鸟群、最终月亮:
+
+```text
+Use the uploaded forest background only as style and palette reference. Generate isolated transparent PNG game assets, not full scenes.
+
+Overall style for every asset:
+cozy 16-bit pixel art, Stardew-Valley-like RPG sprite, crisp hard square pixel edges, no blur, no anti-aliasing, transparent background, already cropped with small transparent padding, readable at small mobile game size, 3/4 top-down RPG view where suitable, matching this palette: deep navy night, lavender purple shadows, cream moonlight, soft pink highlights, warm peach accents, moss green and earthy brown. Cute but natural, not toy-like, not anime mascot.
+
+Asset 1: Zizi, white sugar glider
+One small white sugar glider, visible gliding membrane between front and back legs, tiny rounded body, small ears, dark eyes but not oversized, gentle expression, standing or gliding low above the ground. Around 64x64 to 96x96 sprite feeling.
+
+Asset 2: Meimei, mottled grey-brown sugar glider
+One small normal mottled grey-brown sugar glider, same scale as Zizi, visible gliding membrane, soft brown-grey patches, small ears, dark eyes but not oversized, sweet natural expression, slightly different pose from Zizi. Around 64x64 to 96x96 sprite feeling.
+
+Asset 3: Tutu and Dudu, brown rabbits
+Two separate brown rabbits with clear transparent padding between them for cropping. One lighter caramel-brown rabbit, one darker chocolate-brown rabbit. Not white rabbits. Long ears, small round bodies, tiny paws, soft cream muzzle highlights, relaxed garden pose. Around 64x64 to 96x96 sprite feeling each.
+
+Asset 4: pigeon group
+Seven separate small grey-white pigeons arranged in a neat grid with clear transparent padding. Different simple poses: standing, side view, wings slightly open, mid-flap, turning, flying upward, tiny landing pose. Each bird should be clean and readable at 24x24 to 40x40 sprite size.
+
+Asset 5: final full moon
+One complete full round moon, unbroken, not a crescent, not a shard, not a crystal. Soft cream moon with subtle pale pink and lavender pixel patches, no face, no eyes, no smile. Centered isolated prop, 96x96 to 160x160 sprite feeling.
+
+Negative prompt:
+blurry, soft airbrush, smooth gradients, anti-aliased vector, 3D render, photorealistic, semi-realistic painting, watercolor, anime mascot, chibi toy, oversized glossy eyes, plush toy, sticker style, thick cartoon outline, messy background, full scene, landscape background, floor, UI, text, labels, watermark, logo
+```
